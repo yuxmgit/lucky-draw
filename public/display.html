@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>抽奖结果公示 · 公共大屏</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="screen">
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<div class="screen-wrap">
+  <header class="screen-head">
+    <div class="screen-title">
+      <h1>🎊 抽奖结果公示</h1>
+      <span>公平 · 公开 · 实时公示</span>
+    </div>
+    <div class="screen-stats">
+      <div class="screen-stat"><b id="sPeople">0</b><span>参与人数</span></div>
+      <div class="screen-stat"><b id="sWinners">0</b><span>中奖人数</span></div>
+      <div class="screen-stat"><b id="sStock">0</b><span>剩余奖品</span></div>
+      <div class="screen-stat"><b id="sPool">0</b><span>待抽奖池</span></div>
+    </div>
+  </header>
+
+  <main class="screen-body">
+    <section class="screen-col">
+      <h2>中奖公示榜</h2>
+      <ul class="winner-feed" id="winnerFeed"></ul>
+    </section>
+
+    <section class="screen-col">
+      <h2>奖品进度</h2>
+      <div class="prize-board" id="prizeBoard"></div>
+    </section>
+  </main>
+
+  <footer class="screen-foot">
+    <div class="chain">
+      <span>当前记录指纹</span>
+      <b id="chainHead">—</b>
+    </div>
+    <div id="fairNote">抽奖结果由服务器加密随机生成 · 每条记录含上一条哈希，可公开校验</div>
+    <div id="clock">--:--:--</div>
+  </footer>
+</div>
+
+<div class="reveal" id="reveal">
+  <div class="reveal-inner">
+    <div class="reveal-prize" id="revealPrize">一等奖</div>
+    <div class="reveal-name" id="revealName">—</div>
+    <div class="reveal-dept" id="revealDept"></div>
+    <div class="reveal-time" id="revealTime"></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+<script src="/display.js"></script>
+</body>
+</html>

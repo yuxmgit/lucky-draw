@@ -1,0 +1,63 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - heading "🎊 年会抽奖" [level=1] [ref=e5]
+        - generic [ref=e6]: 公平 · 公开 · 实时公示
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e9]: "8"
+          - text: 参与人数
+        - generic [ref=e10]:
+          - generic [ref=e11]: "3"
+          - text: 中奖人数
+        - generic [ref=e12]:
+          - generic [ref=e13]: "4"
+          - text: 剩余奖品
+        - generic [ref=e14]:
+          - generic [ref=e15]: "5"
+          - text: 待抽奖池
+    - main [ref=e16]:
+      - generic [ref=e17]:
+        - heading "中奖公示榜" [level=2] [ref=e18]
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - generic [ref=e21]: 🎧
+            - generic [ref=e22]: 赵六 财务部
+            - generic [ref=e23]: AirPods Pro
+            - generic [ref=e24]: 17:09:39
+          - listitem [ref=e25]:
+            - generic [ref=e26]: 📱
+            - generic [ref=e27]: 孙八 市场部
+            - generic [ref=e28]: iPhone 16 Pro
+            - generic [ref=e29]: 17:07:34
+          - listitem [ref=e30]:
+            - generic [ref=e31]: 📱
+            - generic [ref=e32]: 王五 人事部
+            - generic [ref=e33]: iPhone 16 Pro
+            - generic [ref=e34]: 17:07:34
+      - generic [ref=e35]:
+        - heading "奖品进度" [level=2] [ref=e36]
+        - generic [ref=e37]:
+          - generic [ref=e39]:
+            - generic [ref=e40]: 📱
+            - generic [ref=e41]: iPhone 16 Pro
+            - generic [ref=e42]: 2 / 2 已抽完
+          - generic [ref=e46]:
+            - generic [ref=e47]: 🎧
+            - generic [ref=e48]: AirPods Pro
+            - generic [ref=e49]: 1 / 3
+          - generic [ref=e53]:
+            - generic [ref=e54]: ☕
+            - generic [ref=e55]: 星巴克券
+            - generic [ref=e56]: 0 / 2
+    - contentinfo [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]: 当前记录指纹
+        - generic [ref=e61]: f5096e37ad5f61201b99…
+      - generic [ref=e62]: 抽奖结果由服务器加密随机生成 · 每条记录含上一条哈希，可公开校验
+      - generic [ref=e63]: 17:10:05
+  - generic:
+    - generic:
+      - generic: 一等奖
+      - generic: —

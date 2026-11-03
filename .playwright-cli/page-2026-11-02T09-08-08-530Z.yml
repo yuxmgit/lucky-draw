@@ -1,0 +1,82 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 🎊
+      - generic [ref=e5]:
+        - heading "年会抽奖系统" [level=1] [ref=e6]
+        - paragraph [ref=e7]: 公平 · 公开 · 可追溯
+    - navigation [ref=e8]:
+      - button "抽奖台" [ref=e9] [cursor=pointer]
+      - button "奖品设置" [ref=e10] [cursor=pointer]
+      - button "参与名单" [ref=e11] [cursor=pointer]
+      - button "中奖记录" [ref=e12] [cursor=pointer]
+      - button "公平核验" [ref=e13] [cursor=pointer]
+    - link "公共大屏 ↗" [ref=e14] [cursor=pointer]:
+      - /url: /display.html
+  - main [ref=e15]:
+    - generic [ref=e17]:
+      - complementary [ref=e18]:
+        - generic [ref=e19]:
+          - heading "奖品池" [level=2] [ref=e20]
+          - button "管理" [ref=e21] [cursor=pointer]
+        - generic [ref=e22]:
+          - button "📱 iPhone 16 Pro 一等奖 · 共 2 个 已抽完" [ref=e23] [cursor=pointer]:
+            - generic [ref=e24]: 📱
+            - generic [ref=e25]: iPhone 16 Pro 一等奖 · 共 2 个
+            - generic [ref=e26]: 已抽完
+          - button "🎧 AirPods Pro 二等奖 · 共 3 个 剩 3" [ref=e27] [cursor=pointer]:
+            - generic [ref=e28]: 🎧
+            - generic [ref=e29]: AirPods Pro 二等奖 · 共 3 个
+            - generic [ref=e30]: 剩 3
+          - button "☕ 星巴克券 阳光普照 · 共 2 个 剩 2" [ref=e31] [cursor=pointer]:
+            - generic [ref=e32]: ☕
+            - generic [ref=e33]: 星巴克券 阳光普照 · 共 2 个
+            - generic [ref=e34]: 剩 2
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: 🎧
+            - generic [ref=e39]:
+              - heading "AirPods Pro" [level=2] [ref=e40]
+              - paragraph [ref=e41]: 二等奖 · 共 3 个 · 已抽 0 个 · 剩余 3 个
+          - generic [ref=e42]:
+            - generic [ref=e43]: "6"
+            - text: 人参与本轮
+        - generic [ref=e44]:
+          - generic [ref=e45]: 🎯
+          - generic [ref=e47]: 点击下方按钮开始抽奖
+        - generic [ref=e48]:
+          - button "开始抽奖 空格键" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: 开始抽奖
+            - emphasis [ref=e51]: 空格键
+          - generic [ref=e52]:
+            - link "投屏到公共大屏" [ref=e53] [cursor=pointer]:
+              - /url: /display.html
+            - generic [ref=e54]: ·
+            - generic [ref=e55]: 每次结果由服务器加密随机产生
+      - complementary [ref=e56]:
+        - generic [ref=e57]:
+          - generic [ref=e58]:
+            - generic [ref=e59]: "8"
+            - text: 参与人数
+          - generic [ref=e60]:
+            - generic [ref=e61]: "2"
+            - text: 已中奖
+          - generic [ref=e62]:
+            - generic [ref=e63]: "5"
+            - text: 剩余奖品
+          - generic [ref=e64]:
+            - generic [ref=e65]: "7"
+            - text: 奖品总数
+        - generic [ref=e66]:
+          - heading "实时中奖榜" [level=2] [ref=e67]
+          - generic "实时同步" [ref=e68]: LIVE
+        - list [ref=e70]:
+          - listitem [ref=e71]:
+            - generic [ref=e72]: 📱
+            - generic [ref=e73]: 孙八 iPhone 16 Pro
+            - generic [ref=e74]: 17:07:34
+          - listitem [ref=e75]:
+            - generic [ref=e76]: 📱
+            - generic [ref=e77]: 王五 iPhone 16 Pro
+            - generic [ref=e78]: 17:07:34
