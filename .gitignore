@@ -1,0 +1,19 @@
+# 依赖
+node_modules/
+
+# 运行时数据：中奖记录属于线上状态，不应该进版本库
+# 注意：这几个文件在加 .gitignore 之前已经被提交过，
+# 取消跟踪需要执行：git rm -r --cached data node_modules
+data/
+backups/
+
+# 日志
+*.log
+
+# 部署时生成的访问凭据
+deploy/.access.txt
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,38 @@
+[Unit]
+Description=Lucky Draw Web App
+Documentation=https://github.com/yuxmgit/lucky-draw
+After=network.target
+
+[Service]
+Type=simple
+User=lucky
+Group=lucky
+WorkingDirectory=/opt/lucky-draw
+
+# 只监听回环地址：外部访问一律经过 Nginx，
+# 这样即使云安全组误开了 3000 端口，也不会把服务直接暴露出去。
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+
+ExecStart=/usr/bin/node --no-warnings server.js
+
+# 进程挂掉自动拉起
+Restart=always
+RestartSec=3
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lucky-draw
+
+# --- 基础加固 ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+# ProtectSystem=full 会把 /usr /boot /etc 挂成只读，/opt 仍可写；
+# 这里再显式声明唯一需要写的目录。
+ReadWritePaths=/opt/lucky-draw/data
+
+[Install]
+WantedBy=multi-user.target

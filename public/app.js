@@ -22,6 +22,11 @@ async function api(url, options = {}) {
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
+  // 会话失效：直接回登录页，避免页面上一堆「请求失败」
+  if (res.status === 401) {
+    location.href = '/login';
+    throw new Error('登录已失效');
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
   return data;
@@ -473,6 +478,16 @@ function bindEvents() {
     const tab = e.target.closest('.tab');
     if (tab) switchView(tab.dataset.view);
   });
+
+  const logoutBtn = $('#logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await fetch('/api/logout', { method: 'POST' });
+      } catch { /* 网络异常也照样回登录页 */ }
+      location.href = '/login';
+    });
+  }
 
   $$('[data-goto]').forEach((btn) => {
     btn.addEventListener('click', () => switchView(btn.dataset.goto));

@@ -3,6 +3,10 @@
 const $ = (sel) => document.querySelector(sel);
 const api = async (url) => {
   const res = await fetch(url);
+  if (res.status === 401) {
+    location.href = '/login';
+    throw new Error('登录已失效');
+  }
   if (!res.ok) throw new Error('加载失败');
   return res.json();
 };

@@ -14,7 +14,17 @@ const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
 
 const PORT = Number(process.env.PORT || 3000);
+// 生产环境由 systemd 注入 HOST=127.0.0.1，让 Node 只监听回环地址，
+// 外部流量统一走 Nginx；本地开发不设该变量，仍是 0.0.0.0，方便同事在局域网访问。
+const HOST = process.env.HOST || '0.0.0.0';
 const DATA_DIR = path.join(__dirname, 'data');
+
+// --- 登录账号（生产环境请用环境变量覆盖默认值）---
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+// 会话签名密钥：不配置则每次启动随机生成，重启后已登录的浏览器会掉线
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
 const db = new DatabaseSync(path.join(DATA_DIR, 'lottery.db'));
@@ -226,11 +236,91 @@ function drawPrize(prizeId) {
   });
 }
 
+/* ------------------------------- 登录鉴权 ------------------------------- */
+
+const COOKIE_NAME = 'ld_session';
+
+// 未登录也能访问的路径：登录页本身、登录接口、页面要用的样式
+const PUBLIC_PATHS = new Set(['/login', '/api/login', '/styles.css', '/favicon.ico']);
+
+function parseCookies(header) {
+  const out = {};
+  if (!header) return out;
+  for (const part of String(header).split(';')) {
+    const idx = part.indexOf('=');
+    if (idx < 0) continue;
+    const key = part.slice(0, idx).trim();
+    if (!key) continue;
+    const value = part.slice(idx + 1).trim();
+    try {
+      out[key] = decodeURIComponent(value);
+    } catch {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+// 会话格式：base64url(payload).HMAC-SHA256 签名
+// 无状态，不需要在服务端存 session 表，重启后只要密钥不变仍然有效。
+function signSession(user) {
+  const payload = Buffer.from(
+    JSON.stringify({ u: user, exp: Date.now() + SESSION_TTL_MS })
+  ).toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+  return `${payload}.${sig}`;
+}
+
+function readSession(token) {
+  if (typeof token !== 'string') return null;
+  const dot = token.indexOf('.');
+  if (dot <= 0) return null;
+
+  const payload = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  const expected = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
+
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data || !data.u || typeof data.exp !== 'number' || Date.now() > data.exp) return null;
+    return data.u;
+  } catch {
+    return null;
+  }
+}
+
+// 定长比较，避免通过响应时间猜密码
+function safeEqual(a, b) {
+  const ba = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ba.length !== bb.length) {
+    crypto.timingSafeEqual(ba, ba);
+    return false;
+  }
+  return crypto.timingSafeEqual(ba, bb);
+}
+
+// 登录失败限流：同一 IP 60 秒内最多 6 次，挡掉最粗暴的密码爆破
+const loginAttempts = new Map();
+function tooManyAttempts(ip) {
+  const now = Date.now();
+  const rec = loginAttempts.get(ip);
+  if (!rec || now - rec.first > 60_000) {
+    loginAttempts.set(ip, { first: now, count: 1 });
+    return false;
+  }
+  rec.count += 1;
+  return rec.count > 6;
+}
+
 /* --------------------------------- 路由 --------------------------------- */
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 const wrap = (fn) => (req, res, next) => {
   try {
@@ -239,6 +329,62 @@ const wrap = (fn) => (req, res, next) => {
     next(err);
   }
 };
+
+/* ---------------------- 登录 / 登出 / 未登录拦截 ---------------------- */
+// 注意顺序：这三段必须在 express.static 和业务路由之前，
+// 否则页面会先被静态服务返回，鉴权形同虚设。
+
+app.post('/api/login', wrap((req, res) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  if (tooManyAttempts(ip)) {
+    throw new HttpError(429, '尝试次数过多，请 1 分钟后再试');
+  }
+
+  const { username, password } = req.body || {};
+  const okUser = safeEqual(username || '', ADMIN_USER);
+  const okPass = safeEqual(password || '', ADMIN_PASSWORD);
+  if (!okUser || !okPass) {
+    throw new HttpError(401, '账号或密码错误');
+  }
+
+  loginAttempts.delete(ip);
+  res.setHeader(
+    'Set-Cookie',
+    `${COOKIE_NAME}=${signSession(ADMIN_USER)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(
+      SESSION_TTL_MS / 1000
+    )}`
+  );
+  res.json({ ok: true, user: ADMIN_USER });
+}));
+
+app.post('/api/logout', wrap((req, res) => {
+  res.setHeader('Set-Cookie', `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  res.json({ ok: true });
+}));
+
+app.get('/login', (req, res) => {
+  const user = readSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
+  if (user) return res.redirect(302, '/');
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.use((req, res, next) => {
+  if (PUBLIC_PATHS.has(req.path)) return next();
+
+  const user = readSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
+  if (user) {
+    req.user = user;
+    return next();
+  }
+
+  // 接口返回 401，让前端跳登录页；页面请求直接重定向
+  if (req.path.startsWith('/api/')) {
+    return res.status(401).json({ error: '登录已失效，请重新登录', needLogin: true });
+  }
+  return res.redirect(302, '/login');
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/api/overview', wrap((req, res) => {
   const latest = db.prepare('SELECT id FROM draws ORDER BY id DESC LIMIT 1').get();
@@ -480,8 +626,13 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error: err.message || '服务器异常' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
+  const shown = HOST === '0.0.0.0' ? 'localhost' : HOST;
   console.log(`\n🎉 抽奖系统已启动`);
-  console.log(`   控制台：  http://localhost:${PORT}/`);
-  console.log(`   公共大屏：http://localhost:${PORT}/display.html\n`);
+  console.log(`   控制台：  http://${shown}:${PORT}/`);
+  console.log(`   公共大屏：http://${shown}:${PORT}/display.html`);
+  console.log(`   登录账号：${ADMIN_USER}\n`);
+  if (ADMIN_PASSWORD === 'admin') {
+    console.warn('   ⚠️  正在使用默认密码 admin，公网部署请设置环境变量 ADMIN_PASSWORD\n');
+  }
 });

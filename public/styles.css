@@ -105,6 +105,24 @@ body.app { min-height: 100vh; overflow-x: hidden; }
 }
 .screen-link:hover { background: rgba(255, 203, 92, 0.12); }
 
+.logout-btn {
+  margin-left: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.logout-btn:hover {
+  color: var(--red);
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.08);
+}
+
 /* ---------- 通用 ---------- */
 .main { position: relative; z-index: 2; padding: 24px 28px 48px; max-width: 1680px; margin: 0 auto; }
 .hidden { display: none !important; }
