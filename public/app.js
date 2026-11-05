@@ -333,7 +333,7 @@ function renderRecords() {
   );
   const tbody = $('#recordTable tbody');
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">${state.records.length ? '没有匹配的记录' : '还没有中奖记录'}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty">${state.records.length ? '没有匹配的记录' : '还没有中奖记录'}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
@@ -346,9 +346,25 @@ function renderRecords() {
         <td><b>${escapeHtml(r.participantName)}</b></td>
         <td class="muted">${escapeHtml(r.participantDept || '—')}</td>
         <td class="mono" title="${r.hash}">${r.shortHash}…</td>
+        <td><button class="row-danger" data-del-draw="${r.id}">删除</button></td>
       </tr>`
     )
     .join('');
+
+  $$('#recordTable [data-del-draw]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('确定删除这条中奖记录吗？\n\n删除后将重建哈希链（后续记录指纹会变化），该人员会重新进入抽奖池。')) return;
+      try {
+        await api(`/api/draws/${btn.dataset.delDraw}`, { method: 'DELETE' });
+        await loadRecords();
+        await refresh();
+        toast('记录已删除，哈希链已重建', 'ok');
+      } catch (err) {
+        toast(err.message, 'err');
+        loadRecords().catch(() => {});
+      }
+    });
+  });
 }
 
 /* -------------------------------- 公平核验 -------------------------------- */

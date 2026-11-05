@@ -630,6 +630,42 @@ app.get('/api/audit', wrap((req, res) => {
   });
 }));
 
+// 删除单条中奖记录（仅管理员）：删除后重建哈希链，保证审计校验仍然通过
+app.delete('/api/draws/:id', wrap((req, res) => {
+  const id = Number(req.params.id);
+  const row = db.prepare('SELECT * FROM draws WHERE id = ?').get(id);
+  if (!row) throw new HttpError(404, '记录不存在');
+
+  withTx(() => {
+    db.prepare('DELETE FROM draws WHERE id = ?').run(id);
+
+    // prev_hash 是哈希负载的一部分，删除中间记录会级联影响后续所有记录，
+    // 因此按 id 顺序整条链重算一遍
+    let prev = GENESIS;
+    const rows = db.prepare('SELECT * FROM draws ORDER BY id ASC').all();
+    const update = db.prepare('UPDATE draws SET prev_hash = ?, hash = ? WHERE id = ?');
+    for (const r of rows) {
+      const payload = [
+        prev,
+        r.prize_id,
+        r.prize_name,
+        r.participant_id,
+        r.participant_name,
+        r.pool_size,
+        r.pool_hash,
+        r.nonce,
+        r.created_at,
+      ].join('|');
+      const hash = sha256(payload);
+      update.run(prev, hash, r.id);
+      prev = hash;
+    }
+    setMeta('chain_head', prev);
+  });
+
+  res.json({ ok: true });
+}));
+
 app.get('/api/settings', wrap((req, res) => {
   res.json({ allowRepeat: allowRepeat() });
 }));
