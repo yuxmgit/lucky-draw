@@ -93,6 +93,26 @@ body.app { min-height: 100vh; overflow-x: hidden; }
   box-shadow: 0 6px 18px rgba(255, 190, 80, 0.28);
 }
 
+.header-links {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.top-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 9px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  transition: 0.2s;
+  white-space: nowrap;
+}
+.top-link:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+
 .screen-link {
   margin-left: auto;
   color: var(--gold);
@@ -604,6 +624,13 @@ body.screen {
   .tab { flex: 0 0 auto; padding: 10px 15px; font-size: 13.5px; }
   .screen-link { margin-left: auto; padding: 9px 12px; font-size: 12.5px; white-space: nowrap; }
   .logout-btn { padding: 9px 12px; white-space: nowrap; }
+  .header-links { gap: 6px; }
+  .top-link { padding: 8px 11px; font-size: 12.5px; }
+
+  /* 手机上让抽奖舞台排在最前，避免先滚过奖品列表才看到抽奖按钮 */
+  .stage { order: 1; }
+  .prize-panel { order: 2; }
+  .side-panel { order: 3; }
 
   .main { padding: 14px 12px 40px; }
   .card { padding: 14px; border-radius: 14px; }

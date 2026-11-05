@@ -211,8 +211,8 @@
 
   <main class="login-card">
     <div class="logo">🎊</div>
-    <h1>抽奖系统</h1>
-    <p class="sub">公平 · 公开 · 可追溯</p>
+    <h1>管理后台</h1>
+    <p class="sub">仅管理员需要登录 · 抽奖页可直接访问</p>
 
     <form id="loginForm" autocomplete="off">
       <label>
@@ -265,7 +265,8 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || '登录失败');
-      location.href = '/';
+      const next = new URLSearchParams(location.search).get('next');
+      location.href = next && next.startsWith('/') ? next : '/admin';
     } catch (err) {
       errBox.textContent = err.message;
       btn.disabled = false;

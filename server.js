@@ -269,8 +269,20 @@ function drawPrize(prizeId) {
 
 const COOKIE_NAME = 'ld_session';
 
-// 未登录也能访问的路径：登录页本身、登录接口、页面要用的样式
-const PUBLIC_PATHS = new Set(['/login', '/api/login', '/styles.css', '/favicon.ico']);
+// 免登录即可调用的接口：只能抽奖、看结果、看候选池，任何增删改都要管理员身份。
+const PUBLIC_API = new Set([
+  'POST /api/login',
+  'POST /api/logout',
+  'GET /api/overview',
+  'GET /api/winners',
+  'GET /api/display',
+  'GET /api/pool',
+  'POST /api/draw',
+]);
+
+// 抽奖防刷：同一 IP 两次抽奖之间至少间隔这么久（默认 3 秒）
+const DRAW_COOLDOWN_MS = Math.max(0, Number(process.env.DRAW_COOLDOWN_MS ?? 3000));
+const lastDrawAt = new Map();
 
 function parseCookies(header) {
   const out = {};
@@ -393,26 +405,31 @@ app.post('/api/logout', wrap((req, res) => {
 
 app.get('/login', (req, res) => {
   const user = readSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
-  if (user) return res.redirect(302, '/');
+  if (user) return res.redirect(302, '/admin');
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
+// 管理后台页面：未登录时跳登录页
+app.get('/admin', (req, res) => {
+  const user = readSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
+  if (!user) return res.redirect(302, '/login?next=/admin');
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// 接口鉴权：公开接口放行，其余必须带有效会话
 app.use((req, res, next) => {
-  if (PUBLIC_PATHS.has(req.path)) return next();
+  if (!req.path.startsWith('/api/')) return next();
+  if (PUBLIC_API.has(`${req.method} ${req.path}`)) return next();
 
   const user = readSession(parseCookies(req.headers.cookie)[COOKIE_NAME]);
   if (user) {
     req.user = user;
     return next();
   }
-
-  // 接口返回 401，让前端跳登录页；页面请求直接重定向
-  if (req.path.startsWith('/api/')) {
-    return res.status(401).json({ error: '登录已失效，请重新登录', needLogin: true });
-  }
-  return res.redirect(302, '/login');
+  return res.status(401).json({ error: '需要管理员登录', needLogin: true });
 });
 
+// 静态资源（抽奖页、大屏、样式脚本）全部公开，敏感数据都在接口层校验
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/api/overview', wrap((req, res) => {
@@ -549,9 +566,23 @@ app.get('/api/pool', wrap((req, res) => {
   });
 }));
 
+// 公开抽奖接口：任何人无需登录即可抽奖，但要防连点刷屏
 app.post('/api/draw', wrap((req, res) => {
   const prizeId = Number(req.body?.prizeId);
   if (!prizeId) throw new HttpError(400, '请先选择奖品');
+
+  if (DRAW_COOLDOWN_MS > 0) {
+    const ip = req.ip || req.socket.remoteAddress || 'unknown';
+    const now = Date.now();
+    const prev = lastDrawAt.get(ip) || 0;
+    if (now - prev < DRAW_COOLDOWN_MS) {
+      const wait = Math.ceil((DRAW_COOLDOWN_MS - (now - prev)) / 1000);
+      throw new HttpError(429, `手速太快啦，请 ${wait} 秒后再抽`);
+    }
+    lastDrawAt.set(ip, now);
+    if (lastDrawAt.size > 5000) lastDrawAt.clear();
+  }
+
   const result = drawPrize(prizeId);
   res.json({ ...result, stats: stats() });
 }));
@@ -658,9 +689,10 @@ app.use((err, req, res, next) => {
 app.listen(PORT, HOST, () => {
   const shown = HOST === '0.0.0.0' ? 'localhost' : HOST;
   console.log(`\n🎉 抽奖系统已启动`);
-  console.log(`   控制台：  http://${shown}:${PORT}/`);
-  console.log(`   公共大屏：http://${shown}:${PORT}/display.html`);
-  console.log(`   登录账号：${ADMIN_USER}\n`);
+  console.log(`   抽奖页（公开）：http://${shown}:${PORT}/`);
+  console.log(`   管理后台：      http://${shown}:${PORT}/admin`);
+  console.log(`   公共大屏：      http://${shown}:${PORT}/display.html`);
+  console.log(`   管理员账号：${ADMIN_USER}\n`);
   if (ADMIN_PASSWORD === 'admin') {
     console.warn('   ⚠️  正在使用默认密码 admin，公网部署请设置环境变量 ADMIN_PASSWORD\n');
   }

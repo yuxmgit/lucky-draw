@@ -128,19 +128,33 @@ pm2 status                                  # 状态应为 online
 
 ## 5. 改掉默认登录密码（必做）
 
-应用自带登录页，访问站点会先跳到 `/login`，**默认账号和密码都是 `admin`**。
+访问模型：`/`（抽奖页）和 `/display.html`（大屏）**免登录**，任何人都能抽奖和查看；`/admin`（管理后台）需要登录，未登录会跳 `/login`。**默认账号和密码都是 `admin`**。
 
-在「Node 项目 → 设置 → 项目配置」的环境变量里加上这三项，然后重启项目：
+推荐在项目根目录写 `.env`（宝塔的 Node 项目不一定能把环境变量透传进去，`.env` 最稳）：
 
-| 变量名 | 值 |
+```bash
+cd /www/wwwroot/lucky-draw
+cat > .env <<'EOF'
+HOST=127.0.0.1
+ADMIN_USER=admin
+ADMIN_PASSWORD=你的强密码
+SESSION_SECRET=一串随机字符
+EOF
+chmod 600 .env
+chown www:www .env
+```
+
+写好后在面板里**重启项目**生效。
+
+| 变量名 | 说明 |
 |---|---|
-| `ADMIN_USER` | `admin`（或你想要的账号） |
-| `ADMIN_PASSWORD` | 你的强密码 |
-| `SESSION_SECRET` | 一串随机字符（决定登录状态能维持多久） |
+| `HOST` | 固定 `127.0.0.1`，外部流量统一走 Nginx |
+| `ADMIN_USER` | 后台账号 |
+| `ADMIN_PASSWORD` | 后台密码，**公网必须修改** |
+| `SESSION_SECRET` | 会话签名密钥；不填则每次重启后需要重新登录 |
+| `DRAW_COOLDOWN_MS` | 同一 IP 两次抽奖的最小间隔，默认 `3000` 毫秒 |
 
-> 如果嫌 `SESSION_SECRET` 麻烦，不填也行——程序每次启动会随机生成一个，代价是服务重启后所有人都要重新登录。
-
-**不需要再配宝塔的「访问限制」**。应用已经有登录页了，再叠一层 Nginx Basic Auth 会让浏览器连续要两次密码，体验很差。
+**不需要再配宝塔的「访问限制」**。整站加密码会把参与者挡在抽奖页外，后台已有应用登录页保护。
 
 ---
 

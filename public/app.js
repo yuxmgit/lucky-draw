@@ -24,7 +24,7 @@ async function api(url, options = {}) {
   });
   // 会话失效：直接回登录页，避免页面上一堆「请求失败」
   if (res.status === 401) {
-    location.href = '/login';
+    location.href = '/login?next=/admin';
     throw new Error('登录已失效');
   }
   const data = await res.json().catch(() => ({}));

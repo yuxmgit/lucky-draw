@@ -10,9 +10,9 @@
 
 ## 0. 动手前必须知道的 3 个事实
 
-**① 应用自带登录页，默认账号密码都是 `admin`**
+**① 抽奖页公开，管理后台需要登录，默认账号密码都是 `admin`**
 
-访问站点会先跳转到 `/login`。默认值只适合内网演示，**公网部署必须改掉**，在 systemd / PM2 的环境变量里设置：
+`/` 与 `/display.html` 任何人可访问（只能抽奖和查看）；奖品、名单、记录等管理操作在 `/admin`，未登录会跳转到 `/login`。默认值只适合内网演示，**公网部署必须改掉**，在 systemd / PM2 的环境变量或 `.env` 里设置：
 
 ```bash
 Environment=ADMIN_USER=admin
@@ -20,9 +20,7 @@ Environment=ADMIN_PASSWORD=换成强密码
 Environment=SESSION_SECRET=一串随机字符
 ```
 
-`install-server.sh` 还会额外在 Nginx 层加一道 HTTP Basic 认证（用户名 `lucky` + 随机密码）。
-两道锁叠在一起会让浏览器连续要求输入两次密码——**保留应用的登录页就够了**，
-想要少输一次就去掉 `/etc/nginx/conf.d/lucky-draw.conf` 里的 `auth_basic` 两行。
+`install-server.sh` 会顺带生成一份 Nginx Basic Auth 密码文件（用户名 `lucky`），但**默认不启用**——抽奖页要公开放给参与者，整站加密码会把所有人都拦在门外。需要额外一层防护时，取消 `nginx-lucky-draw.conf` 里 `location = /admin` 那段的注释即可。
 
 **② Node.js 必须 ≥ 23.4**
 
@@ -105,10 +103,11 @@ ssh ubuntu@1.2.3.4 "sudo cat /opt/lucky-draw/deploy/.access.txt"
 
 ### 打开看看
 
-- 控制台：`http://1.2.3.4/`
-- 公共大屏：`http://1.2.3.4/display.html`
+- 抽奖页（公开，发给参与者）：`http://1.2.3.4/`
+- 管理后台（需登录）：`http://1.2.3.4/admin`
+- 公共大屏（公开，直接投屏）：`http://1.2.3.4/display.html`
 
-浏览器会弹出一个登录框，输入上面的用户名和密码即可。输入一次后浏览器会记住，投屏时不用反复输。
+管理后台首次登录用 `.env` 或环境变量里设置的 `ADMIN_USER` / `ADMIN_PASSWORD`（默认都是 `admin`）。
 
 ---
 

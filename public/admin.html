@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>管理后台 · 抽奖系统</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="app">
+<div class="glow glow-a"></div>
+<div class="glow glow-b"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-logo">🎊</span>
+    <div>
+      <h1>管理后台</h1>
+      <p>奖品 · 名单 · 核验</p>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="draw">抽奖台</button>
+    <button class="tab" data-view="prizes">奖品设置</button>
+    <button class="tab" data-view="people">参与名单</button>
+    <button class="tab" data-view="records">中奖记录</button>
+    <button class="tab" data-view="audit">公平核验</button>
+  </nav>
+  <div class="header-links">
+    <a class="top-link" href="/">前台抽奖页</a>
+    <a class="top-link" href="/display.html" target="_blank" rel="noopener">公共大屏 ↗</a>
+    <button class="logout-btn" id="logoutBtn" type="button">退出</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ============================ 抽奖台 ============================ -->
+  <section class="view" id="view-draw">
+    <div class="draw-grid">
+      <aside class="card prize-panel">
+        <div class="card-head">
+          <h2>奖品池</h2>
+          <button class="btn-mini" data-goto="prizes">管理</button>
+        </div>
+        <div id="prizeList" class="prize-list"></div>
+      </aside>
+
+      <section class="card stage">
+        <div class="stage-top">
+          <div class="stage-prize">
+            <span class="stage-icon" id="stageIcon">🎁</span>
+            <div>
+              <h2 id="stagePrizeName">请选择左侧奖品</h2>
+              <p id="stagePrizeMeta" class="muted">准备好名单后即可开抽</p>
+            </div>
+          </div>
+          <div class="stage-counter">
+            <span id="poolCount">0</span>
+            <small>人参与本轮</small>
+          </div>
+        </div>
+
+        <div class="roller-wrap">
+          <div class="roller" id="roller">
+            <span class="roller-name" id="rollName">🎯</span>
+            <span class="roller-dept" id="rollDept"></span>
+          </div>
+          <div class="roller-tip" id="rollTip">点击下方按钮开始抽奖</div>
+        </div>
+
+        <div class="stage-bottom">
+          <button class="btn-draw" id="drawBtn">
+            <span>开始抽奖</span>
+            <em>空格键</em>
+          </button>
+          <div class="stage-links">
+            <a class="link" href="/display.html" target="_blank" rel="noopener">投屏到公共大屏</a>
+            <span class="dot">·</span>
+            <span class="muted" id="fairnessNote">每次结果由服务器加密随机产生</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card side-panel">
+        <div class="stat-grid" id="statGrid">
+          <div class="stat"><b id="statPeople">0</b><span>参与人数</span></div>
+          <div class="stat"><b id="statWinners">0</b><span>已中奖</span></div>
+          <div class="stat"><b id="statStock">0</b><span>剩余奖品</span></div>
+          <div class="stat"><b id="statTotal">0</b><span>奖品总数</span></div>
+        </div>
+        <div class="card-head">
+          <h2>实时中奖榜</h2>
+          <span class="live-dot" title="实时同步"><i></i>LIVE</span>
+        </div>
+        <ul class="feed" id="feed"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================ 奖品设置 ============================ -->
+  <section class="view hidden" id="view-prizes">
+    <div class="card form-card">
+      <div class="card-head"><h2>新增奖品</h2><span class="muted">可自由增加奖项与数量</span></div>
+      <form id="prizeForm" class="form-row">
+        <label>图标<input name="icon" maxlength="4" value="🎁" /></label>
+        <label>奖品名称<input name="name" placeholder="如：iPhone 16 Pro" required /></label>
+        <label>奖项等级<input name="level" placeholder="如：一等奖" value="幸运奖" /></label>
+        <label>数量<input name="quantity" type="number" min="1" max="9999" value="1" /></label>
+        <button class="btn-primary" type="submit">+ 添加奖品</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>奖品列表</h2>
+        <div class="head-tools">
+          <span class="muted">修改后离开输入框自动保存</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="prizeTable">
+          <thead>
+            <tr><th style="width:64px">图标</th><th>奖品名称</th><th style="width:140px">奖项等级</th><th style="width:120px">总数</th><th style="width:120px">已抽</th><th style="width:110px">剩余</th><th style="width:90px">操作</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 参与名单 ============================ -->
+  <section class="view hidden" id="view-people">
+    <div class="card form-card">
+      <div class="card-head"><h2>导入参与名单</h2><span class="muted">每行一人，支持「姓名,部门」，也可直接粘贴 Excel 两列</span></div>
+      <form id="peopleForm">
+        <textarea name="names" rows="6" placeholder="张三,技术部&#10;李四,市场部&#10;王五"></textarea>
+        <div class="form-actions">
+          <button class="btn-primary" type="submit">导入名单</button>
+          <button class="btn-ghost" type="button" id="clearPeopleBtn">清空名单</button>
+          <span class="muted" id="peopleTotal"></span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>已参与人员</h2>
+        <span class="muted">已中奖人员默认不再进入抽奖池</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="peopleTable">
+          <thead><tr><th style="width:80px">序号</th><th>姓名</th><th>部门 / 备注</th><th style="width:120px">中奖次数</th><th style="width:90px">操作</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 中奖记录 ============================ -->
+  <section class="view hidden" id="view-records">
+    <div class="card">
+      <div class="card-head">
+        <h2>中奖记录</h2>
+        <div class="head-tools">
+          <input id="recordSearch" class="input-sm" placeholder="搜索姓名 / 奖品" />
+          <a class="btn-mini" href="/api/export.csv">导出 CSV</a>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="recordTable">
+          <thead><tr><th style="width:60px">#</th><th style="width:190px">中奖时间</th><th>奖品</th><th>奖项</th><th>姓名</th><th>部门</th><th style="width:130px">记录指纹</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 公平核验 ============================ -->
+  <section class="view hidden" id="view-audit">
+    <div class="card">
+      <div class="card-head">
+        <h2>公平性说明</h2>
+        <button class="btn-primary" id="verifyBtn">校验全部记录</button>
+      </div>
+      <ul class="rules">
+        <li><b>真随机</b>：使用 Node.js <code>crypto.randomInt</code>（密码学安全随机源，拒绝采样，无取模偏差），而非 <code>Math.random</code>。</li>
+        <li><b>候选池快照</b>：每次抽奖前对全部候选人 ID、姓名、部门做 SHA-256 摘要并入库，事后无法替换参赛者。</li>
+        <li><b>哈希链</b>：每条记录都包含上一条记录的哈希，任何篡改都会让后续记录校验失败。</li>
+        <li><b>一人一奖</b>：默认开启“每人只能中奖一次”，已中奖者立即退出候选池（可在设置中调整）。</li>
+        <li><b>公开留痕</b>：中奖人、奖品、毫秒级时间、候选人数同步展示在公共大屏，可导出 CSV 存档。</li>
+      </ul>
+      <div class="settings-row">
+        <label class="switch">
+          <input type="checkbox" id="allowRepeatToggle" />
+          <span></span>
+          允许同一人重复中奖
+        </label>
+        <button class="btn-ghost danger" id="resetDrawsBtn">清空所有中奖记录</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>哈希链校验</h2>
+        <span id="auditStatus" class="badge">未校验</span>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="auditTable">
+          <thead><tr><th style="width:60px">#</th><th>中奖人</th><th>奖品</th><th style="width:100px">候选人数</th><th style="width:150px">记录哈希</th><th style="width:110px">状态</th></tr></thead>
+          <tbody><tr><td colspan="6" class="empty">点击右上角「校验全部记录」生成结果</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+<canvas id="confetti"></canvas>
+<script src="/app.js"></script>
+</body>
+</html>
