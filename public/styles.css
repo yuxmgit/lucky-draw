@@ -578,4 +578,119 @@ body.screen {
   .draw-grid { grid-template-columns: 1fr; }
   .prize-panel, .side-panel, .stage { min-height: auto; }
   .screen-body { grid-template-columns: 1fr; }
+  .prize-list { max-height: 340px; }
+}
+
+/* ---------- 移动端适配（≤768px 手机） ---------- */
+@media (max-width: 768px) {
+  html { -webkit-text-size-adjust: 100%; }
+
+  /* 顶栏：品牌行 + 可横滑 tab 栏 */
+  .topbar { gap: 10px; padding: 12px 14px; }
+  .brand-logo { width: 38px; height: 38px; font-size: 19px; border-radius: 11px; }
+  .brand h1 { font-size: 16px; }
+  .brand p { display: none; }
+  .tabs {
+    order: 10;
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; padding: 10px 15px; font-size: 13.5px; }
+  .screen-link { margin-left: auto; padding: 9px 12px; font-size: 12.5px; white-space: nowrap; }
+  .logout-btn { padding: 9px 12px; white-space: nowrap; }
+
+  .main { padding: 14px 12px 40px; }
+  .card { padding: 14px; border-radius: 14px; }
+  .card + .card { margin-top: 12px; }
+  .card-head { gap: 8px; }
+  .card-head h2 { font-size: 14.5px; }
+  .muted { font-size: 12px; }
+
+  /* 表单在窄屏纵向铺满 */
+  .form-row { gap: 10px; }
+  .form-row label { flex: 1 1 46%; }
+  .form-row label:first-child { flex: 0 0 auto; }
+  .form-row input { min-width: 0; width: 100%; }
+  input, textarea { font-size: 15px; } /* ≥16px 可防 iOS 聚焦自动放大，15px 边界足够 */
+  .form-actions { gap: 10px; }
+
+  /* 抽奖台 */
+  .stage-top { flex-wrap: wrap; }
+  .stage-icon { width: 46px; height: 46px; flex-basis: 46px; font-size: 24px; border-radius: 12px; }
+  .stage-prize h2 { font-size: 17px; }
+  .stage-counter span { font-size: 24px; }
+  .roller-wrap { min-height: 240px; padding: 16px 6px; gap: 10px; }
+  .roller-name { font-size: clamp(34px, 12vw, 56px); letter-spacing: 2px; }
+  .roller-dept { font-size: 14px; }
+  .btn-draw { padding: 16px 42px; font-size: 18px; letter-spacing: 3px; }
+  .stage-links { flex-wrap: wrap; justify-content: center; row-gap: 4px; }
+  .prize-list { max-height: 300px; }
+
+  /* 触屏设备隐藏键盘快捷键提示，加大点击热区 */
+  .btn-draw em { display: none; }
+  .btn-mini { padding: 9px 14px; }
+  .btn-ghost { padding: 11px 16px; }
+  .btn-primary { padding: 12px 18px; }
+  .row-danger { padding: 8px 4px; }
+
+  /* 表格：保留横向滚动，略微收紧 */
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+  .table { font-size: 12.5px; }
+  .table td { padding: 10px 10px; }
+  .stat-grid { gap: 8px; }
+  .feed { max-height: 320px; }
+
+  /* 公共大屏在手机上也能看 */
+  body.screen { overflow: auto; height: auto; min-height: 100vh; }
+  .screen-wrap { height: auto; min-height: 100vh; padding: 14px 12px 14px; gap: 12px; }
+  .screen-head { gap: 10px; }
+  .screen-title { gap: 10px; }
+  .screen-title h1 { font-size: 21px; letter-spacing: 2px; }
+  .screen-title span { font-size: 11px; letter-spacing: 1px; }
+  .screen-stats { gap: 8px; flex-wrap: wrap; }
+  .screen-stat { min-width: 76px; padding: 6px 12px; }
+  .screen-stat b { font-size: 18px; }
+  .screen-stat span { font-size: 10.5px; }
+  .screen-body { gap: 12px; }
+  .screen-col h2 { margin-bottom: 8px; }
+  .winner-feed li { padding: 10px 12px; gap: 10px; }
+  .winner-feed .wf-icon { font-size: 19px; }
+  .winner-feed .wf-name { font-size: 16px; letter-spacing: 1px; }
+  .winner-feed .wf-dept { font-size: 11px; margin-left: 4px; }
+  .winner-feed .wf-prize { font-size: 11px; padding: 4px 9px; max-width: 42vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .winner-feed .wf-time { display: none; }
+  .pb-item { padding: 10px 12px; }
+  .screen-foot { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* 揭晓弹层 */
+  .reveal-prize { font-size: 15px; letter-spacing: 3px; margin-bottom: 12px; }
+  .reveal-name { font-size: clamp(52px, 20vw, 110px); letter-spacing: 6px; }
+  .reveal-dept { font-size: 16px; margin-top: 10px; }
+  .reveal-time { font-size: 12px; margin-top: 18px; }
+  .toast { top: 16px; font-size: 13px; max-width: 88vw; }
+}
+
+/* 小屏手机（≤480px）进一步压缩 */
+@media (max-width: 480px) {
+  .brand { gap: 9px; }
+  .brand-logo { width: 34px; height: 34px; font-size: 17px; }
+  .brand h1 { font-size: 15px; }
+  .main { padding: 12px 10px 36px; }
+  .card { padding: 12px; }
+  .form-row label { flex: 1 1 100%; }
+  .settings-row { gap: 12px; }
+  .table th { padding: 9px 10px; }
+  .stat b { font-size: 20px; }
+}
+
+/* ---------- 触屏设备 ---------- */
+@media (hover: none) and (pointer: coarse) {
+  .btn-draw em { display: none; }
+  .tab, .btn-mini, .btn-ghost, .logout-btn { -webkit-tap-highlight-color: transparent; }
 }
