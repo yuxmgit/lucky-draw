@@ -13,6 +13,35 @@ const fs = require('fs');
 const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
 
+// --- 读取项目根目录的 .env 配置文件 ---
+// 宝塔面板的 Node 项目没有环境变量编辑入口，把密码写在 .env 里最通用：
+// 文件内容形如 ADMIN_PASSWORD=xxx，每行一个，# 开头为注释。
+// 已存在的真实环境变量优先，不会被 .env 覆盖。
+(function loadEnvFile() {
+  const envPath = path.join(__dirname, '.env');
+  try {
+    const content = fs.readFileSync(envPath, 'utf8');
+    for (const rawLine of content.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) continue;
+      let value = line.slice(eq + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      if (process.env[key] === undefined) process.env[key] = value;
+    }
+  } catch {
+    /* 没有 .env 文件就走默认值，属于正常情况 */
+  }
+})();
+
 const PORT = Number(process.env.PORT || 3000);
 // 生产环境由 systemd 注入 HOST=127.0.0.1，让 Node 只监听回环地址，
 // 外部流量统一走 Nginx；本地开发不设该变量，仍是 0.0.0.0，方便同事在局域网访问。
